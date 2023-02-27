@@ -1,7 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const dotenv = require("dotenv");
-dotenv.config();
 const mongoose = require("mongoose");
 const User = require('./models/User');
 const Post = require('./models/Post');
@@ -12,6 +10,9 @@ const cookieParser = require('cookie-parser');
 const multer = require('multer');
 const uploadMiddleware = multer({ dest: 'uploads/' });
 const fs = require('fs');
+
+const dotenv = require('dotenv')
+dotenv.config()
 
 const salt = bcrypt.genSaltSync(10);
 
@@ -42,7 +43,7 @@ app.post('/login', async (req,res) => {
   const passOk = bcrypt.compareSync(password, userDoc.password);
   if (passOk) {
     // logged in
-    jwt.sign({username,id:userDoc._id}, process.env.SECRET_KEY, {}, (err,token) => {
+    jwt.sign({username,id:userDoc._id}, process.env.SECRET_KEY, {expiresIn: "7d"}, (err,token) => {
       if (err) throw err;
       res.cookie('token', token).json({
         id:userDoc._id,
@@ -67,6 +68,7 @@ app.post('/logout', (req,res) => {
 });
 
 app.post('/post', uploadMiddleware.single('file'), async (req,res) => {
+  console.log(req.file)
   const {originalname,path} = req.file;
   const parts = originalname.split('.');
   const ext = parts[parts.length - 1];
@@ -114,10 +116,11 @@ app.put('/post',uploadMiddleware.single('file'), async (req,res) => {
       content,
       cover: newPath ? newPath : postDoc.cover,
     });
+
     res.json(postDoc);
   });
-});
 
+});
 
 app.get('/post', async (req,res) => {
   res.json(
