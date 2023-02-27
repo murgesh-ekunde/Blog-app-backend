@@ -57,9 +57,12 @@ app.post('/login', async (req,res) => {
 
 app.get('/profile', (req,res) => {
   const {token} = req.cookies;
-  jwt.verify(token, process.env.SECRET_KEY, {}, (err,info) => {
-    if (err) throw err;
-    res.json(info);
+  jwt.verify(token, process.env.SECRET_KEY, (err,info) => {
+    if (err) {
+      return res.status(400).json({ message: `${err.message}` })
+    }else{
+     return res.json(info);
+    }
   });
 });
 
